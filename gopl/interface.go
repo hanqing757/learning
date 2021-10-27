@@ -3,6 +3,7 @@ package gopl
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"strings"
 )
 
@@ -45,4 +46,17 @@ func (w *WordAndLineCounter) String() string {
 	str := fmt.Sprintf("word cnt:%d, line cnt:%d",w.wordCnt, w.lineCnt)
 
 	return str
+}
+
+func CountingWriter(w io.Writer) (io.Writer, *int64) {
+	t := struct {
+		io.Writer
+	}{w}
+	p := []byte{'a'}
+	c, err := t.Write(p)
+	if err != nil {
+		fmt.Printf("Write err:%+v\n", err)
+	}
+	c64 := int64(c)
+	return t, &c64
 }
