@@ -147,3 +147,35 @@ func (t *TempReader) Read(b []byte) (n int, err error)  {
 	t.idx += l
 	return l, nil
 }
+
+// LimitedReader 实现LimitReader
+type LimitedReader struct {
+	R io.Reader
+	N int64   //max bytes remaining
+}
+
+func (l *LimitedReader) Read(b []byte) (n int, err error)  {
+	if l.N <= 0 {
+		return 0, io.EOF
+	}
+
+	n1, err := l.R.Read(b)
+	if err == io.EOF {
+		return 0, err
+	}
+	if int64(n1) <= l.N {
+		l.N = l.N - int64(n1)
+		return n1, nil
+	}else {
+		b = b[:l.N]
+		l.N = 0
+		return len(b), nil
+	}
+}
+
+func LimitReader(r io.Reader, n int64) io.Reader {
+	return &LimitedReader{
+		R: r,
+		N: n,
+	}
+}
