@@ -64,7 +64,6 @@ func TestTempReaderV2(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ioutil.ReadAll err:%+v\n", err)
 	}
-
 	if string(str) != "<p>A: <b>Hello!</b></p><p>B: <b>World!</b></p>" {
 		t.Fatalf("Read err")
 	}
