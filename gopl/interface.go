@@ -2,7 +2,9 @@ package gopl
 
 import (
 	"bufio"
+	"bytes"
 	"fmt"
+	"html/template"
 	"io"
 	"learning/util"
 	"strings"
@@ -110,4 +112,38 @@ func (t *Tree) String() string {
 	s = AppendVal(s, t)
 	str := util.Array2String(s, " ")
 	return str
+}
+
+type TempReader struct {
+	s string
+	idx int
+}
+
+type TempParams struct {
+	A template.HTML
+	B template.HTML
+}
+
+func NewTempReader(s string, tp TempParams) (*TempReader, error) {
+	var buf bytes.Buffer
+	temp := template.Must(template.New("escape").Parse(s))
+	if err := temp.Execute(&buf, tp); err != nil{
+		fmt.Printf("NewTempReader err: %+v\n", err)
+		return nil, err
+	}
+
+	return &TempReader{
+		s: buf.String(),
+		idx: 0,
+	},nil
+}
+
+func (t *TempReader) Read(b []byte) (n int, err error)  {
+	if t.idx >= len(t.s) {
+		return 0, io.EOF
+	}
+
+	l := copy(b, t.s[t.idx:])
+	t.idx += l
+	return l, nil
 }
