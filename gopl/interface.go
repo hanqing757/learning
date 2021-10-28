@@ -3,6 +3,7 @@ package gopl
 import (
 	"bufio"
 	"bytes"
+	"flag"
 	"fmt"
 	"html/template"
 	"io"
@@ -179,3 +180,47 @@ func LimitReader(r io.Reader, n int64) io.Reader {
 		N: n,
 	}
 }
+
+type Celsius float64
+type Fahrenheit float64
+type Kelvim float64
+
+func CToF(c Celsius) Fahrenheit { return Fahrenheit(c*9/5 + 32) }
+func FToC(f Fahrenheit) Celsius { return Celsius((f - 32) * 5 / 9)}
+func KToC(k Kelvim) Celsius {return Celsius(k-273.15)}
+
+func (c Celsius) String() string {
+	return fmt.Sprintf("%fC",c)
+}
+
+type celsiusFlag struct {
+	Celsius
+}
+
+func (f *celsiusFlag) Set(s string) error {
+	var val float64
+	var unit string
+	fmt.Sscanf(s, "%f%s",&val, &unit)
+	switch unit {
+	case "C":
+		f.Celsius = Celsius(val)
+		return nil
+	case "F":
+		f.Celsius = FToC(Fahrenheit(val))
+		return nil
+	case "K":
+		f.Celsius = KToC(Kelvim(val))
+		return nil
+	default:
+		return fmt.Errorf("invalid tempurature %q", s)
+	}
+}
+
+func CelsiusFlag(name string, value Celsius, usage string) *Celsius {
+	f := celsiusFlag{value}
+	flag.CommandLine.Var(&f, name, usage)
+	return &f.Celsius
+}
+
+
+

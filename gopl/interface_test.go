@@ -1,6 +1,7 @@
 package gopl
 
 import (
+	"flag"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -102,5 +103,13 @@ func TestLimitReader(t *testing.T) {
 	buf3 = buf3[:n3]
 	if string(buf3) != "ader" {
 		t.Fatalf("error")
+	}
+}
+
+func TestCelsiusFlag(t *testing.T) {
+	cel := CelsiusFlag("temp", 20, "temperature")
+	flag.Parse()
+	if *cel != Celsius(20) {
+		t.Fatalf("err")
 	}
 }
