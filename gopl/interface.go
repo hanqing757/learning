@@ -235,8 +235,8 @@ type Track struct {
 }
 
 var Tracks = []*Track{
-	{"Go", "Delilah", "From the Roots Up", 2012, length("3m38s")},
 	{"Go", "Moby", "Moby", 1992, length("3m37s")},
+	{"Go", "Delilah", "From the Roots Up", 2012, length("3m38s")},
 	{"Go Ahead", "Alicia Keys", "As I Am", 2007, length("4m36s")},
 	{"Ready 2 Go", "Martin Solveig", "Smash", 2011, length("4m24s")},
 }
@@ -341,4 +341,37 @@ func MyCustomSortV2(column string, increase bool) {
 		sort.Sort(sort.Reverse(CustomSort{Tracks, less}))
 	}
 	PrintTacks(Tracks)
+}
+
+type MultiSort struct {
+	t []*Track
+	rule []string  //保存点击状态。倒序进行排序判定
+}
+
+func (m MultiSort) Len() int {
+	return len(m.t)
+}
+func (m MultiSort) Less(i, j int) bool {
+	for k := len(m.rule)-1; k > -1; k-- {
+		switch m.rule[k] {
+		case "Title":
+			if m.t[i].Title != m.t[j].Title {
+				return m.t[i].Title < m.t[j].Title
+			}
+		case "Year":
+			if m.t[i].Year != m.t[j].Year {
+				return m.t[i].Year < m.t[j].Year
+			}
+		case "Length":
+			if m.t[i].Length != m.t[j].Length {
+				return m.t[i].Length < m.t[j].Length
+			}
+		default:
+			panic("column name err")
+		}
+	}
+	return true
+}
+func (m MultiSort) Swap(i, j int)  {
+	m.t[i], m.t[j] = m.t[j], m.t[i]
 }
