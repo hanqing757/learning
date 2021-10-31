@@ -315,3 +315,30 @@ func MyCustomSort() {
 	}})
 	PrintTacks(Tracks)
 }
+
+// MyCustomSortV2 更灵活的自定义排序
+func MyCustomSortV2(column string, increase bool) {
+	var less func(x, y *Track) bool
+	switch column {
+	case "Title":
+		less = func(x, y *Track) bool {
+			return x.Title < y.Title
+		}
+	case "Year":
+		less = func(x, y *Track) bool {
+			return x.Year < y.Year
+		}
+	case "Length":
+		less = func(x, y *Track) bool {
+			return x.Length < y.Length
+		}
+	default:
+		panic("colume name err")
+	}
+	if increase {
+		sort.Sort(CustomSort{Tracks, less})
+	}else {
+		sort.Sort(sort.Reverse(CustomSort{Tracks, less}))
+	}
+	PrintTacks(Tracks)
+}
