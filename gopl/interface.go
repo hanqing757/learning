@@ -8,7 +8,11 @@ import (
 	"html/template"
 	"io"
 	"learning/util"
+	"os"
+	"sort"
 	"strings"
+	"text/tabwriter"
+	"time"
 )
 
 type WordAndLineCounter struct {
@@ -222,5 +226,92 @@ func CelsiusFlag(name string, value Celsius, usage string) *Celsius {
 	return &f.Celsius
 }
 
+type Track struct {
+	Title string
+	Artist string
+	Album string
+	Year int
+	Length time.Duration
+}
 
+var Tracks = []*Track{
+	{"Go", "Delilah", "From the Roots Up", 2012, length("3m38s")},
+	{"Go", "Moby", "Moby", 1992, length("3m37s")},
+	{"Go Ahead", "Alicia Keys", "As I Am", 2007, length("4m36s")},
+	{"Ready 2 Go", "Martin Solveig", "Smash", 2011, length("4m24s")},
+}
 
+func length(s string) time.Duration {
+	t, err := time.ParseDuration(s)
+	if err != nil {
+		panic("ParseDuration err")
+	}
+	return t
+}
+
+// printTacks
+func PrintTacks(tracks []*Track) {
+	format := "%v\t%v\t%v\t%v\t%v\t\n"
+	w := tabwriter.NewWriter(os.Stdout, 0, 8, 2, ' ', 0)
+	fmt.Fprintf(w, format, "Title", "Artist", "Album", "Year", "Length")
+	fmt.Fprintf(w, format, "-----", "------", "-----", "----", "------")
+	for _, track := range tracks {
+		fmt.Fprintf(w, format, track.Title, track.Artist, track.Album, track.Year, track.Length)
+	}
+	w.Flush()
+}
+
+type ByDefault []*Track
+
+func (b ByDefault) Len() int {
+	return len(b)
+}
+func (b ByDefault) Less(i, j int) bool {
+	if b[i].Title != b[j].Title {
+		return b[i].Title < b[j].Title
+	}
+	if b[i].Year != b[j].Year {
+		return b[i].Year < b[j].Year
+	}
+	if b[i].Length != b[j].Length {
+		return b[i].Length < b[j].Length
+	}
+
+	return false
+}
+func (b ByDefault) Swap(i, j int)  {
+	b[i], b[j] = b[j], b[i]
+}
+
+// CustomSort 实现sort.Interface的类型不一定是slice，也可以是结构体 用结构体实现ByDefault的排序实现
+type CustomSort struct {
+	t []*Track
+	less func(x, y *Track) bool
+}
+
+func (c CustomSort) Len() int {
+	return len(c.t)
+}
+func (c CustomSort) Less(i, j int) bool  {
+	return c.less(c.t[i], c.t[j])
+}
+func (c CustomSort) Swap(i, j int)  {
+	c.t[i], c.t[j] = c.t[j], c.t[i]
+}
+
+func MyCustomSort() {
+	sort.Sort(CustomSort{Tracks, func(x, y *Track) bool {
+		if x.Title != y.Title {
+			return x.Title < y.Title
+		}
+		if x.Year != y.Year {
+			return x.Year < y.Year
+		}
+		if x.Length != y.Length {
+			return x.Length < y.Length
+		}
+
+		return false
+	}})
+	PrintTacks(Tracks)
+}
