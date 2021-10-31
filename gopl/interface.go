@@ -8,7 +8,9 @@ import (
 	"html/template"
 	"io"
 	"learning/util"
+	"log"
 	"os"
+	"reflect"
 	"sort"
 	"strings"
 	"text/tabwriter"
@@ -374,4 +376,26 @@ func (m MultiSort) Less(i, j int) bool {
 }
 func (m MultiSort) Swap(i, j int)  {
 	m.t[i], m.t[j] = m.t[j], m.t[i]
+}
+
+// IsPalindrome 通过sort.Interface实现回文判断
+func IsPalindrome(s sort.Interface) bool {
+	defer func() {
+		if p := recover(); p != nil{
+			log.Fatalf("err: %+v", p)
+		}
+	}()
+	if s == nil || reflect.ValueOf(s).IsNil() {
+		panic("nil err")
+	}
+
+	leng := s.Len()
+	for i := 0; i < leng/2; i++ {
+		if !s.Less(i, leng-1-i) && !s.Less(leng-1-i, i) {
+			continue
+		}else {
+			return false
+		}
+	}
+	return true
 }
