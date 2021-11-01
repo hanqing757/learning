@@ -13,7 +13,9 @@ import (
 	"os"
 	"reflect"
 	"sort"
+	"strconv"
 	"strings"
+	"sync"
 	"text/tabwriter"
 	"time"
 )
@@ -425,6 +427,27 @@ func (s Stock) price(w http.ResponseWriter, r *http.Request)  {
 	}
 	fmt.Fprintf(w, "%s\n", price)
 }
+
+func (s Stock) update(w http.ResponseWriter, r *http.Request)  {
+	item := r.URL.Query().Get("item")
+	price := r.URL.Query().Get("price")
+	priceFloat, err := strconv.ParseFloat(price, 64)
+	if err != nil{
+		w.WriteHeader(http.StatusForbidden)
+		fmt.Fprintf(w, "price is invalid, price:%v\n", price)
+		return
+	}
+	var mu sync.Mutex
+	if _, ok := s[item]; ok {
+		mu.Lock()
+		s[item] = dollar(priceFloat)
+		mu.Unlock()
+	} else {
+		w.WriteHeader(http.StatusNotFound)
+		fmt.Fprintf(w, "no such item found, item:%s", item)
+		return
+	}
+}
 var stock Stock = map[string]dollar{
 	"shoes":dollar(50.1),
 	"socks":dollar(10.5),
@@ -441,5 +464,6 @@ func WebServerV1() {
 func WebServerV2()  {
 	http.HandleFunc("/list", stock.list)
 	http.HandleFunc("/price", stock.price)
+	http.HandleFunc("/update", stock.update)
 	log.Fatal(http.ListenAndServe(":8081", nil))
 }
