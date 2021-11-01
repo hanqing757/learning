@@ -9,6 +9,7 @@ import (
 	"io"
 	"learning/util"
 	"log"
+	"net/http"
 	"os"
 	"reflect"
 	"sort"
@@ -398,4 +399,47 @@ func IsPalindrome(s sort.Interface) bool {
 		}
 	}
 	return true
+}
+
+//======================http.Handler==================================
+type dollar float64
+
+type Stock map[string]dollar
+
+func (d dollar) String() string {
+	return fmt.Sprintf("$%.2f", d)
+}
+
+func (s Stock) list(w http.ResponseWriter, r *http.Request)  {
+	for item, price := range s {
+		fmt.Fprintf(w, "%s:%s\n",item, price)
+	}
+}
+func (s Stock) price(w http.ResponseWriter, r *http.Request)  {
+	item := r.URL.Query().Get("item")
+	price, ok := s[item]
+	if !ok {
+		w.WriteHeader(http.StatusNotFound)
+		fmt.Fprintf(w, "no such item found, item:%s", item)
+		return
+	}
+	fmt.Fprintf(w, "%s\n", price)
+}
+var stock Stock = map[string]dollar{
+	"shoes":dollar(50.1),
+	"socks":dollar(10.5),
+}
+
+func WebServerV1() {
+	mx := http.NewServeMux()
+	//mx.Handle("/list", http.HandlerFunc(stock.list))
+	//mx.Handle("/price", http.HandlerFunc(stock.price))
+	mx.HandleFunc("/list", stock.list)
+	mx.HandleFunc("/price", stock.price)
+	log.Fatal(http.ListenAndServe(":8080", mx))
+}
+func WebServerV2()  {
+	http.HandleFunc("/list", stock.list)
+	http.HandleFunc("/price", stock.price)
+	log.Fatal(http.ListenAndServe(":8081", nil))
 }
