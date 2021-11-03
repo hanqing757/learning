@@ -10,6 +10,7 @@ import (
 type Expr interface {
 	Eval(env Env) float64
 	Check(env Env) error
+	String() string
 }
 
 // Var 表达式中的变量
@@ -46,6 +47,9 @@ func (v Var) Check(env Env) error  {
 	}
 	return nil
 }
+func (v Var) String() string {
+	return string(v)
+}
 
 func (v literal) Eval(_ Env) float64 {
 	return float64(v)
@@ -53,6 +57,9 @@ func (v literal) Eval(_ Env) float64 {
 
 func (v literal) Check(_ Env) error {
 	return nil
+}
+func (v literal) String() string {
+	return fmt.Sprintf("%g",v)
 }
 
 func (u unary) Eval(env Env) float64 {
@@ -63,6 +70,9 @@ func (u unary) Eval(env Env) float64 {
 		return -u.x.Eval(env)
 	}
 	panic(fmt.Sprintf("invalid unary.op:%v", u.op))
+}
+func (u unary) String() string {
+	return fmt.Sprintf("%c%s",u.op, u.x)
 }
 
 func (u unary) Check(env Env) error {
@@ -105,6 +115,10 @@ func (b binary) Check(env Env) error {
 	return nil
 }
 
+func (b binary) String() string {
+	by := b.y.String()
+	return fmt.Sprintf("%s %c %s", b.x, b.op, by)
+}
 
 func (c call) Eval(env Env) float64 {
 	switch c.fn {
@@ -135,4 +149,10 @@ func (c call) Check(env Env) error  {
 	return nil
 }
 
-
+func (c call) String() string {
+	var argsArr []string
+	for _, ar := range c.args {
+		argsArr = append(argsArr, ar.String())
+	}
+	return fmt.Sprintf("%s(%s)", c.fn, strings.Join(argsArr, ", "))
+}
