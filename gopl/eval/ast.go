@@ -3,11 +3,13 @@ package eval
 import (
 	"fmt"
 	"math"
+	"strings"
 )
 
 // Expr 任意一种表达式
 type Expr interface {
 	Eval(env Env) float64
+	Check(env Env) error
 }
 
 // Var 表达式中的变量
@@ -38,9 +40,19 @@ type Env map[Var]float64
 func (v Var) Eval(env Env) float64 {
 	return env[v]
 }
+func (v Var) Check(env Env) error  {
+	if _, ok := env[v]; !ok {
+		return fmt.Errorf("undefined variable:%v", v)
+	}
+	return nil
+}
 
 func (v literal) Eval(_ Env) float64 {
 	return float64(v)
+}
+
+func (v literal) Check(_ Env) error {
+	return nil
 }
 
 func (u unary) Eval(env Env) float64 {
@@ -51,6 +63,13 @@ func (u unary) Eval(env Env) float64 {
 		return -u.x.Eval(env)
 	}
 	panic(fmt.Sprintf("invalid unary.op:%v", u.op))
+}
+
+func (u unary) Check(env Env) error {
+	if u.op != '+' &&  u.op != '-' {
+		return fmt.Errorf("undefined op:%v", u.op)
+	}
+	return u.x.Check(env)
 }
 
 func (b binary) Eval(env Env) float64 {
@@ -68,6 +87,25 @@ func (b binary) Eval(env Env) float64 {
 	panic(fmt.Sprintf("invalid binary op:%v", b.op))
 }
 
+func (b binary) Check(env Env) error {
+	if !strings.ContainsRune("+-*/",b.op) {
+		return fmt.Errorf("undefined op:%v", b.op)
+	}
+	if err := b.x.Check(env); err != nil{
+		return err
+	}
+
+	if err := b.y.Check(env); err != nil{
+		return err
+	}else {
+		if b.op == '/' && b.y.Eval(env) == 0 {
+			return fmt.Errorf("divided by zero")
+		}
+	}
+	return nil
+}
+
+
 func (c call) Eval(env Env) float64 {
 	switch c.fn {
 	case "pow":
@@ -78,6 +116,23 @@ func (c call) Eval(env Env) float64 {
 		return math.Sqrt(c.args[0].Eval(env))
 	}
 	panic(fmt.Sprintf("invalid call op:%v", c.fn))
+}
+
+var fnArgsMap = map[string]int{"pow":2, "sin":1, "sqrt":1}
+
+func (c call) Check(env Env) error  {
+	if v, ok := fnArgsMap[c.fn]; !ok {
+		return fmt.Errorf("undefined fn:%v", c.fn)
+	}else if len(c.args) != v {
+		return fmt.Errorf("func args cnt invalid")
+	}
+
+	for _, ar := range c.args {
+		if err := ar.Check(env); err != nil{
+			return err
+		}
+	}
+	return nil
 }
 
 

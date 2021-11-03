@@ -31,3 +31,31 @@ func TestEval(t *testing.T) {
 		}
 	}
 }
+
+func TestCheck(t *testing.T) {
+	tests := []struct{
+		expr string
+		env Env
+	}{
+		{"x ^ 2", Env{"x":1}},
+		{"2 / (x - 1)", Env{"x":1}},
+		{"!x",Env{"x":1}},
+		{"log(10)",Env{}},
+		{"sqrt(1, 2)", Env{}},
+		{"x / 3", Env{"y":1}},
+	}
+
+	for _, test := range tests {
+		expr, err := Parse(test.expr)
+		if err != nil{
+			t.Log(err)
+			continue
+		}
+		err = expr.Check(test.env)
+		if err == nil{
+			t.Error("err should not be nil")
+		}else {
+			t.Log(err)
+		}
+	}
+}
