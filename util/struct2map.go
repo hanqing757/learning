@@ -275,7 +275,7 @@ func Map2Struct(m interface{}, output interface{}, useJsonTag bool) error {
 		fieldType := ott.Field(i)
 		// 那些不可以set?
 		if !fieldVal.CanSet() {
-			fmt.Printf("Field %s can not be set", fieldType.Name)
+			fmt.Printf("Field %s can not be set\n", fieldType.Name)
 		}
 		var mapKey string
 		if useJsonTag {
@@ -286,14 +286,14 @@ func Map2Struct(m interface{}, output interface{}, useJsonTag bool) error {
 		mapVal := mv.MapIndex(reflect.ValueOf(mapKey))
 		// key not found
 		if mapVal.IsZero() {
-			fmt.Printf("key:%s not found in map", mapKey)
+			fmt.Printf("key:%s not found in map\n", mapKey)
 			continue
 		}
 
 		if mapVal.Elem().Type().AssignableTo(fieldType.Type) {
 			fieldVal.Set(mapVal.Elem())
 		} else {
-			fmt.Printf("map key %s can not assignto field %s", mapKey, fieldType.Name)
+			fmt.Printf("map key %s can not assignto field %s\n", mapKey, fieldType.Name)
 		}
 
 	}
