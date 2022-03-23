@@ -52,84 +52,129 @@ func Struct2MapV1(s interface{}) (map[string]interface{}, error) {
 
 }
 
-func VerifyStructFieldType(m map[string]interface{}) {
+func assertInt(k string, v interface{}) {
+	if _, ok := v.(int); ok {
+		fmt.Printf("conv success, key:%s, expect type:int, got:%T; val:%v\n", k, v, v)
+	} else {
+		fmt.Printf("conv failed, key:%s, expect type:int, got:%T; val:%v\n", k, v, v)
+	}
+}
+
+func assertInt32(k string, v interface{}) {
+	if _, ok := v.(int32); ok {
+		fmt.Printf("conv success, key:%s, expect type:int32, got:%T; val:%v\n", k, v, v)
+	} else {
+		fmt.Printf("conv failed, key:%s, expect type:int32, got:%T; val:%v\n", k, v, v)
+	}
+}
+func assertInt64(k string, v interface{}) {
+	if _, ok := v.(int64); ok {
+		fmt.Printf("conv success, key:%s, expect type:int64, got:%T; val:%v\n", k, v, v)
+	} else {
+		fmt.Printf("conv failed, key:%s, expect type:int64, got:%T; val:%v\n", k, v, v)
+	}
+}
+
+func assertFloat32(k string, v interface{}) {
+	if _, ok := v.(float32); ok {
+		fmt.Printf("conv success, key:%s,expect type:float32, got:%T;  val:%v\n", k, v, v)
+	} else {
+		fmt.Printf("conv failed, key:%s, expect type:float32, got:%T; val:%v\n", k, v, v)
+	}
+}
+func assertFloat64(k string, v interface{}) {
+	if _, ok := v.(float64); ok {
+		fmt.Printf("conv success, key:%s, expect type:float64, got:%T; val:%v\n", k, v, v)
+	} else {
+		fmt.Printf("conv failed, key:%s, expect type:float64, got:%T; val:%v\n", k, v, v)
+	}
+}
+
+func assertBool(k string, v interface{}) {
+	if _, ok := v.(bool); ok {
+		fmt.Printf("conv success, key:%s,expect type:bool, got:%T; val:%v\n", k, v, v)
+	} else {
+		fmt.Printf("conv failed, key:%s, expect type:bool, got:%T; val:%v\n", k, v, v)
+	}
+}
+
+func assertString(k string, v interface{}) {
+	if _, ok := v.(string); ok {
+		fmt.Printf("conv success, key:%s, expect type:string, got:%T; val:%v\n", k, v, v)
+	} else {
+		fmt.Printf("conv failed, key:%s, expect type:string, got:%T; val:%v\n", k, v, v)
+	}
+}
+
+func assertByteSlice(k string, v interface{}) {
+	if _, ok := v.([]byte); ok {
+		fmt.Printf("conv success, key:%s,expect type:[]byte, got:%T; val:%v\n", k, v, v)
+	} else {
+		fmt.Printf("conv failed, key:%s, expect type:[]byte, got:%T; val:%v\n", k, v, v)
+	}
+}
+
+func assertIntSlice(k string, v interface{}) {
+	if _, ok := v.([]int); ok {
+		fmt.Printf("conv success, key:%s,expect type:[]int, got:%T; val:%v\n", k, v, v)
+	} else {
+		fmt.Printf("conv failed, key:%s, expect type:[]int, got:%T; val:%v\n", k, v, v)
+	}
+}
+
+func assertStringSlice(k string, v interface{}) {
+	if _, ok := v.([]string); ok {
+		fmt.Printf("conv success, key:%s,expect type:[]string, got:%T; val:%v\n", k, v, v)
+	} else {
+		fmt.Printf("conv failed, key:%s, expect type:[]string, got:%T; val:%v\n", k, v, v)
+	}
+}
+func assertMapIntInt(k string, v interface{}) {
+	if _, ok := v.(map[int]int); ok {
+		fmt.Printf("conv success, key:%s,expect type:map[int]int, got:%T; val:%v\n", k, v, v)
+	} else {
+		fmt.Printf("conv failed, key:%s, expect type:map[int]int, got:%T; val:%v\n", k, v, v)
+	}
+}
+
+func assertT2(k string, v interface{}) {
+	if _, ok := v.(T2); ok {
+		fmt.Printf("conv success, key:%s,expect type:T2, got:%T; val:%v\n", k, v, v)
+	} else {
+		fmt.Printf("conv failed, key:%s, expect type:T2, got:%T; val:%v\n", k, v, v)
+	}
+}
+
+func VerifyMapValueType(m map[string]interface{}) {
 	if m == nil {
 		fmt.Println("input map is nil")
 	}
 	for k, v := range m {
 		switch k {
 		case "X1", "x1":
-			if _, ok := v.(int); ok {
-				fmt.Printf("conv success, key:%s, expect type:int, got:%T; val:%v\n", k, v, v)
-			} else {
-				fmt.Printf("conv failed, key:%s, expect type:int, got:%T; val:%v\n", k, v, v)
-			}
+			assertInt(k, v)
 		case "X2", "x2":
-			if _, ok := v.(int32); ok {
-				fmt.Printf("conv success, key:%s, expect type:int32, got:%T; val:%v\n", k, v, v)
-			} else {
-				fmt.Printf("conv failed, key:%s, expect type:int32, got:%T; val:%v\n", k, v, v)
-			}
+			assertInt32(k, v)
 		case "X3", "x3":
-			if _, ok := v.(int64); ok {
-				fmt.Printf("conv success, key:%s, expect type:int64, got:%T; val:%v\n", k, v, v)
-			} else {
-				fmt.Printf("conv failed, key:%s, expect type:int64, got:%T; val:%v\n", k, v, v)
-			}
+			assertInt64(k, v)
 		case "X4", "x4":
-			if _, ok := v.(float32); ok {
-				fmt.Printf("conv success, key:%s,expect type:float32, got:%T;  val:%v\n", k, v, v)
-			} else {
-				fmt.Printf("conv failed, key:%s, expect type:float32, got:%T; val:%v\n", k, v, v)
-			}
+			assertFloat32(k, v)
 		case "X5", "x5":
-			if _, ok := v.(float64); ok {
-				fmt.Printf("conv success, key:%s, expect type:float64, got:%T; val:%v\n", k, v, v)
-			} else {
-				fmt.Printf("conv failed, key:%s, expect type:float64, got:%T; val:%v\n", k, v, v)
-			}
+			assertFloat64(k, v)
 		case "X6", "x6":
-			if _, ok := v.(bool); ok {
-				fmt.Printf("conv success, key:%s,expect type:bool, got:%T; val:%v\n", k, v, v)
-			} else {
-				fmt.Printf("conv failed, key:%s, expect type:bool, got:%T; val:%v\n", k, v, v)
-			}
+			assertBool(k, v)
 		case "X7", "x7":
-			if _, ok := v.(string); ok {
-				fmt.Printf("conv success, key:%s, expect type:string, got:%T; val:%v\n", k, v, v)
-			} else {
-				fmt.Printf("conv failed, key:%s, expect type:string, got:%T; val:%v\n", k, v, v)
-			}
+			assertString(k, v)
 		case "X8", "x8":
-			if _, ok := v.([]byte); ok {
-				fmt.Printf("conv success, key:%s,expect type:[]byte, got:%T; val:%v\n", k, v, v)
-			} else {
-				fmt.Printf("conv failed, key:%s, expect type:[]byte, got:%T; val:%v\n", k, v, v)
-			}
+			assertByteSlice(k, v)
 		case "X9", "x9":
-			if _, ok := v.([]int); ok {
-				fmt.Printf("conv success, key:%s,expect type:[]int, got:%T; val:%v\n", k, v, v)
-			} else {
-				fmt.Printf("conv failed, key:%s, expect type:[]int, got:%T; val:%v\n", k, v, v)
-			}
+			assertIntSlice(k, v)
 		case "X10", "x10":
-			if _, ok := v.([]string); ok {
-				fmt.Printf("conv success, key:%s,expect type:[]string, got:%T; val:%v\n", k, v, v)
-			} else {
-				fmt.Printf("conv failed, key:%s, expect type:[]string, got:%T; val:%v\n", k, v, v)
-			}
+			assertStringSlice(k, v)
 		case "X11", "x11":
-			if _, ok := v.(map[int]int); ok {
-				fmt.Printf("conv success, key:%s,expect type:map[int]int, got:%T; val:%v\n", k, v, v)
-			} else {
-				fmt.Printf("conv failed, key:%s, expect type:map[int]int, got:%T; val:%v\n", k, v, v)
-			}
+			assertMapIntInt(k, v)
 		case "X12", "x12":
-			if _, ok := v.(T2); ok {
-				fmt.Printf("conv success, key:%s,expect type:T2, got:%T; val:%v\n", k, v, v)
-			} else {
-				fmt.Printf("conv failed, key:%s, expect type:T2, got:%T; val:%v\n", k, v, v)
-			}
+			assertT2(k, v)
 		}
 	}
 
