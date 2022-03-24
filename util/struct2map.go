@@ -7,30 +7,11 @@ import (
 	"reflect"
 )
 
-type T1 struct {
-	X1  int         `json:"x1"`
-	X2  int32       `json:"x2"`
-	X3  int64       `json:"x3"`
-	X4  float32     `json:"x4"`
-	X5  float64     `json:"x5"`
-	X6  bool        `json:"x6"`
-	X7  string      `json:"x7"`
-	X8  []byte      `json:"x8"`
-	X9  []int       `json:"x9"`
-	X10 []string    `json:"x10"`
-	X11 map[int]int `json:"x11"`
-	X12 T2          `json:"x12"`
-}
-type T2 struct {
-	Y1 int    `json:"y1"`
-	Y2 string `json:"y2"`
-}
-
 var (
 	inputParamsErr = errors.New("input is not struct or ptr2struct")
 )
 
-func Struct2MapV1(s interface{}) (map[string]interface{}, error) {
+func Struct2MapWithJsonMashal(s interface{}) (map[string]interface{}, error) {
 	st := reflect.TypeOf(s)
 	if st.Kind() == reflect.Ptr {
 		st = st.Elem()
@@ -52,147 +33,73 @@ func Struct2MapV1(s interface{}) (map[string]interface{}, error) {
 
 }
 
-func assertInt(k string, v interface{}) {
-	if _, ok := v.(int); ok {
-		fmt.Printf("conv success, key:%s, expect type:int, got:%T; val:%v\n", k, v, v)
-	} else {
-		fmt.Printf("conv failed, key:%s, expect type:int, got:%T; val:%v\n", k, v, v)
+type FieldMappingHookFunc func(string) string
+
+type ConvertConfig struct {
+	//映射结构体字段到map key的hook；不为nil时优先使用
+	FieldMappingHook FieldMappingHookFunc
+
+	//在FieldMappingHook为nil时，使用TagName生成map key
+	// TagName 默认为空，此时使用字段名
+	TagName string
+
+	//是否递归转换结构体为map
+	IsRecursiveConv bool
+}
+
+type Converter struct {
+	config *ConvertConfig
+}
+
+func NewConverter(conf *ConvertConfig) *Converter {
+	return &Converter{
+		config: conf,
 	}
 }
 
-func assertInt32(k string, v interface{}) {
-	if _, ok := v.(int32); ok {
-		fmt.Printf("conv success, key:%s, expect type:int32, got:%T; val:%v\n", k, v, v)
-	} else {
-		fmt.Printf("conv failed, key:%s, expect type:int32, got:%T; val:%v\n", k, v, v)
+// StructToMap default
+func StructToMap(input interface{}) (map[string]interface{}, error) {
+	conf := &ConvertConfig{
+		IsRecursiveConv: true,
 	}
-}
-func assertInt64(k string, v interface{}) {
-	if _, ok := v.(int64); ok {
-		fmt.Printf("conv success, key:%s, expect type:int64, got:%T; val:%v\n", k, v, v)
-	} else {
-		fmt.Printf("conv failed, key:%s, expect type:int64, got:%T; val:%v\n", k, v, v)
-	}
+	converter := NewConverter(conf)
+	return converter.StructToMap(input)
 }
 
-func assertFloat32(k string, v interface{}) {
-	if _, ok := v.(float32); ok {
-		fmt.Printf("conv success, key:%s,expect type:float32, got:%T;  val:%v\n", k, v, v)
-	} else {
-		fmt.Printf("conv failed, key:%s, expect type:float32, got:%T; val:%v\n", k, v, v)
-	}
-}
-func assertFloat64(k string, v interface{}) {
-	if _, ok := v.(float64); ok {
-		fmt.Printf("conv success, key:%s, expect type:float64, got:%T; val:%v\n", k, v, v)
-	} else {
-		fmt.Printf("conv failed, key:%s, expect type:float64, got:%T; val:%v\n", k, v, v)
-	}
+// MapToStruct  default
+func MapToStruct(input interface{}, output interface{}) error {
+	conf := &ConvertConfig{}
+	converter := NewConverter(conf)
+	return converter.MapToStruct(input, output)
 }
 
-func assertBool(k string, v interface{}) {
-	if _, ok := v.(bool); ok {
-		fmt.Printf("conv success, key:%s,expect type:bool, got:%T; val:%v\n", k, v, v)
+func (c *Converter) GenMapKeyByField(field reflect.StructField) string {
+	var mapKey string
+	if c.config.FieldMappingHook != nil {
+		mapKey = c.config.FieldMappingHook(field.Name)
 	} else {
-		fmt.Printf("conv failed, key:%s, expect type:bool, got:%T; val:%v\n", k, v, v)
-	}
-}
-
-func assertString(k string, v interface{}) {
-	if _, ok := v.(string); ok {
-		fmt.Printf("conv success, key:%s, expect type:string, got:%T; val:%v\n", k, v, v)
-	} else {
-		fmt.Printf("conv failed, key:%s, expect type:string, got:%T; val:%v\n", k, v, v)
-	}
-}
-
-func assertByteSlice(k string, v interface{}) {
-	if _, ok := v.([]byte); ok {
-		fmt.Printf("conv success, key:%s,expect type:[]byte, got:%T; val:%v\n", k, v, v)
-	} else {
-		fmt.Printf("conv failed, key:%s, expect type:[]byte, got:%T; val:%v\n", k, v, v)
-	}
-}
-
-func assertIntSlice(k string, v interface{}) {
-	if _, ok := v.([]int); ok {
-		fmt.Printf("conv success, key:%s,expect type:[]int, got:%T; val:%v\n", k, v, v)
-	} else {
-		fmt.Printf("conv failed, key:%s, expect type:[]int, got:%T; val:%v\n", k, v, v)
-	}
-}
-
-func assertStringSlice(k string, v interface{}) {
-	if _, ok := v.([]string); ok {
-		fmt.Printf("conv success, key:%s,expect type:[]string, got:%T; val:%v\n", k, v, v)
-	} else {
-		fmt.Printf("conv failed, key:%s, expect type:[]string, got:%T; val:%v\n", k, v, v)
-	}
-}
-func assertMapIntInt(k string, v interface{}) {
-	if _, ok := v.(map[int]int); ok {
-		fmt.Printf("conv success, key:%s,expect type:map[int]int, got:%T; val:%v\n", k, v, v)
-	} else {
-		fmt.Printf("conv failed, key:%s, expect type:map[int]int, got:%T; val:%v\n", k, v, v)
-	}
-}
-
-func assertT2(k string, v interface{}) {
-	if _, ok := v.(T2); ok {
-		fmt.Printf("conv success, key:%s,expect type:T2, got:%T; val:%v\n", k, v, v)
-	} else {
-		fmt.Printf("conv failed, key:%s, expect type:T2, got:%T; val:%v\n", k, v, v)
-	}
-}
-
-func VerifyMapValueType(m map[string]interface{}) {
-	if m == nil {
-		fmt.Println("input map is nil")
-	}
-	for k, v := range m {
-		switch k {
-		case "X1", "x1":
-			assertInt(k, v)
-		case "X2", "x2":
-			assertInt32(k, v)
-		case "X3", "x3":
-			assertInt64(k, v)
-		case "X4", "x4":
-			assertFloat32(k, v)
-		case "X5", "x5":
-			assertFloat64(k, v)
-		case "X6", "x6":
-			assertBool(k, v)
-		case "X7", "x7":
-			assertString(k, v)
-		case "X8", "x8":
-			assertByteSlice(k, v)
-		case "X9", "x9":
-			assertIntSlice(k, v)
-		case "X10", "x10":
-			assertStringSlice(k, v)
-		case "X11", "x11":
-			assertMapIntInt(k, v)
-		case "X12", "x12":
-			assertT2(k, v)
+		if c.config.TagName != "" {
+			mapKey = field.Tag.Get(c.config.TagName)
 		}
 	}
-
+	if mapKey == "" {
+		mapKey = field.Name
+	}
+	return mapKey
 }
 
-// Struct2MapV2 struct 转换为map[string]interface{}
-// s必须是结构体或者结构体指针
-func Struct2MapV2(s interface{}, useJsonTag bool, isRecursiveConvSuct bool) (map[string]interface{}, error) {
+func (c *Converter) StructToMap(input interface{}) (map[string]interface{}, error) {
 	defer Recover()
 
-	st := reflect.TypeOf(s)
-	sv := reflect.ValueOf(s)
+	st := reflect.TypeOf(input)
+	sv := reflect.ValueOf(input)
 	if st.Kind() == reflect.Ptr {
 		st = st.Elem()
 		sv = sv.Elem()
 	}
-	if st.Kind() != reflect.Struct {
-		return nil, fmt.Errorf("input is not struct, is %+v", st.Kind())
+	//非结构体或者空指针
+	if st.Kind() != reflect.Struct || !sv.IsValid() {
+		return nil, fmt.Errorf("input is not invalid struct")
 	}
 	res := map[string]interface{}{}
 	for i := 0; i < st.NumField(); i++ {
@@ -202,15 +109,12 @@ func Struct2MapV2(s interface{}, useJsonTag bool, isRecursiveConvSuct bool) (map
 			err    error
 		)
 
-		if useJsonTag {
-			mapKey = st.Field(i).Tag.Get("json")
-		} else {
-			mapKey = st.Field(i).Name
-		}
+		mapKey = c.GenMapKeyByField(st.Field(i))
+
 		fieldVal := sv.Field(i)
 		fieldValInterface := fieldVal.Interface()
-		if isRecursiveConvSuct && fieldVal.Kind() == reflect.Struct {
-			mapVal, err = Struct2MapV2(fieldValInterface, useJsonTag, isRecursiveConvSuct)
+		if c.config.IsRecursiveConv && fieldVal.Kind() == reflect.Struct {
+			mapVal, err = c.StructToMap(fieldValInterface)
 			if err != nil {
 				return nil, err
 			}
@@ -222,28 +126,25 @@ func Struct2MapV2(s interface{}, useJsonTag bool, isRecursiveConvSuct bool) (map
 	return res, nil
 }
 
-// Map2Struct map结构转换为结构体
-// m是map[string]interface{}或者map[string]interface{}的指针
-// output需要是（结构体或者结构体指针）的指针
-func Map2Struct(m interface{}, output interface{}, useJsonTag bool) error {
+func (c *Converter) MapToStruct(input interface{}, output interface{}) error {
 	defer Recover()
 	// 输入是map或者map指针
-	mt := reflect.TypeOf(m)
-	mv := reflect.ValueOf(m)
+	mt := reflect.TypeOf(input)
+	mv := reflect.ValueOf(input)
 	if mt.Kind() == reflect.Ptr {
 		mt = mt.Elem()
 		mv = mv.Elem()
 	}
-	if mt.Kind() != reflect.Map {
-		return fmt.Errorf("input params is not map or prt2map")
+	// 非map 或者是map 空指针
+	if mt.Kind() != reflect.Map || !mv.IsValid() {
+		return fmt.Errorf("input params is not valid map")
 	}
-	//map的必须要是map[string]interface{}
+	//map的必须要是string
 	mapIter := mv.MapRange()
 	for mapIter.Next() {
 		k := mapIter.Key()
-		v := mapIter.Value()
-		if k.Kind() != reflect.String || v.Kind() != reflect.Interface {
-			return fmt.Errorf("map key or value not invalid")
+		if k.Kind() != reflect.String {
+			return fmt.Errorf("map key is invalid")
 		}
 	}
 
@@ -273,16 +174,11 @@ func Map2Struct(m interface{}, output interface{}, useJsonTag bool) error {
 	for i := 0; i < ott.NumField(); i++ {
 		fieldVal := ovv.Field(i)
 		fieldType := ott.Field(i)
-		// 那些不可以set?
+		// 可寻址 且是 结构体的可导出字段才可set
 		if !fieldVal.CanSet() {
 			fmt.Printf("Field %s can not be set\n", fieldType.Name)
 		}
-		var mapKey string
-		if useJsonTag {
-			mapKey = fieldType.Tag.Get("json")
-		} else {
-			mapKey = fieldType.Name
-		}
+		mapKey := c.GenMapKeyByField(fieldType)
 		mapVal := mv.MapIndex(reflect.ValueOf(mapKey))
 		// key not found
 		if mapVal.IsZero() {
