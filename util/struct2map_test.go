@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"github.com/mitchellh/mapstructure"
 	"reflect"
+	"regexp"
+	"strings"
 	"testing"
 )
 
@@ -267,6 +269,19 @@ func TestMapstructureV2(t *testing.T) {
 	fmt.Printf("%+v, %+v\n", err, t1)
 }
 
+func CamelCaseToSnake(s string) string {
+	matchRe := regexp.MustCompile(`([a-z0-9])([A-Z])`) //匹配所有小写连接大小的位置
+	r := matchRe.ReplaceAllString(s, "${1}_${2}")      //捕获替换匹配 sB 被 s_b替换
+	return strings.ToLower(r)
+}
+
+func TestCamelCaseToSnake(t *testing.T) {
+	s1 := "CalArrLen"
+	s2 := "calArrLen"
+	fmt.Println(CamelCaseToSnake(s1))
+	fmt.Println(CamelCaseToSnake(s2))
+}
+
 func TestIS(t *testing.T) {
 	//var x1 *T2
 	//fmt.Println(reflect.ValueOf(x1).Elem().IsValid())
@@ -274,6 +289,7 @@ func TestIS(t *testing.T) {
 	//fmt.Println(reflect.ValueOf(x1).Elem().IsNil())
 
 	var x2 *map[int]int
+
 	//fmt.Println(reflect.ValueOf(x2).Elem().IsNil())
 	fmt.Println(reflect.ValueOf(x2).Elem().IsValid())
 	fmt.Println(reflect.ValueOf(x2).Elem().IsZero())

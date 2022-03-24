@@ -186,6 +186,7 @@ func (c *Converter) MapToStruct(input interface{}, output interface{}) error {
 			continue
 		}
 
+		//todo 实现弱类型赋值
 		if mapVal.Elem().Type().AssignableTo(fieldType.Type) {
 			fieldVal.Set(mapVal.Elem())
 		} else {
