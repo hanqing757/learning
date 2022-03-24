@@ -21,7 +21,7 @@ type T1 struct {
 	X9  []int       `json:"x9"`
 	X10 []string    `json:"x10"`
 	X11 map[int]int `json:"x11"`
-	T2  `json:"x12"`
+	X12 T2          `json:"x12"`
 }
 
 type T2 struct {
@@ -230,18 +230,15 @@ func TestMapStructureV1(t *testing.T) {
 		X11: map[int]int{
 			888: 888,
 		},
-		T2: T2{
+		X12: T2{
 			Y1: 777,
 			Y2: "nice",
 		},
 	}
-	var m1 = struct {
-		X1 int
-		X2 int64
-	}{}
+	var m1 = map[string]interface{}{}
 	err := mapstructure.Decode(t1, &m1)
 	fmt.Printf("%+v, %+v\n", err, m1)
-	//VerifyMapValueType(m1)
+	VerifyMapValueType(m1)
 }
 
 func TestMapstructureV2(t *testing.T) {
@@ -299,11 +296,13 @@ func TestIS(t *testing.T) {
 func TestCanSet(t *testing.T) {
 	var x = struct {
 		x1 int
-		x2 string
-	}{x1: 1, x2: "2"}
+		X2 string
+	}{x1: 1, X2: "2"}
 	xv := reflect.ValueOf(x)
 	for i := 0; i < xv.NumField(); i++ {
-		val := xv.Field(i)
-		fmt.Println(val.CanSet())
+		xtf := xv.Field(i)
+		fmt.Println(xtf.CanSet())
+		fmt.Println(xtf.CanAddr())
+		fmt.Println(xtf.CanInterface())
 	}
 }

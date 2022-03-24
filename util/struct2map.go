@@ -45,6 +45,17 @@ type ConvertConfig struct {
 
 	//是否递归转换结构体为map
 	IsRecursiveConv bool
+
+	//map的interface value 转换为结构体字段时时候执行强类型转换
+	IsStrictTypeConvert bool
+
+	//未成功转换的字段
+	// struct -> map 不可导出字段
+	// map -> struct 在map中未找到字段或者赋值不成功
+	Unused []string
+
+	//转换过程的报错
+	Errors error
 }
 
 type Converter struct {
@@ -109,9 +120,13 @@ func (c *Converter) StructToMap(input interface{}) (map[string]interface{}, erro
 			err    error
 		)
 
+		fieldVal := sv.Field(i)
+		if !fieldVal.CanInterface() { //不可导出字段不转换
+			continue
+		}
+
 		mapKey = c.GenMapKeyByField(st.Field(i))
 
-		fieldVal := sv.Field(i)
 		fieldValInterface := fieldVal.Interface()
 		if c.config.IsRecursiveConv && fieldVal.Kind() == reflect.Struct {
 			mapVal, err = c.StructToMap(fieldValInterface)
