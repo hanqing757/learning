@@ -3,6 +3,7 @@ package util
 import (
 	"fmt"
 	"github.com/mitchellh/mapstructure"
+	"github.com/mohae/deepcopy"
 	"reflect"
 	"regexp"
 	"strings"
@@ -10,7 +11,7 @@ import (
 )
 
 type T1 struct {
-	X1  int         `json:"x1"`
+	X1  *int        `json:"x1"`
 	X2  int32       `json:"x2"`
 	X3  int64       `json:"x3"`
 	X4  float32     `json:"x4"`
@@ -21,7 +22,7 @@ type T1 struct {
 	X9  []int       `json:"x9"`
 	X10 []string    `json:"x10"`
 	X11 map[int]int `json:"x11"`
-	T2  `json:"x12"`
+	X12 T2          `json:"x12"`
 }
 
 type T2 struct {
@@ -158,29 +159,43 @@ func VerifyMapValueType(m map[string]interface{}) {
 }
 
 func TestStructConv(t *testing.T) {
-	//t1 := T1{
-	//	X1:  111,
-	//	X2:  222,
-	//	X3:  333,
-	//	X4:  444.4,
-	//	X5:  555.5,
-	//	X6:  false,
-	//	X7:  "byte",
-	//	X8:  []byte("dance"),
-	//	X9:  []int{1, 2, 3},
-	//	X10: []string{"hello", "world"},
-	//	X11: map[int]int{
-	//		888: 888,
-	//	},
-	//	T2: T2{
-	//		Y1: 777,
-	//		Y2: "nice",
-	//	},
-	//}
-	//t1map, _ := Struct2MapWithJsonMashal(t1)
-	//t1map, _ := Struct2MapV2(&t1, true, false)
-	//fmt.Printf("%+v\n", t1map)
-	//VerifyMapValueType(t1map)
+	var x1 = 111
+	t1 := T1{
+		X1:  &x1,
+		X2:  222,
+		X3:  333,
+		X4:  444.4,
+		X5:  555.5,
+		X6:  false,
+		X7:  "byte",
+		X8:  []byte("dance"),
+		X9:  []int{1, 2, 3},
+		X10: []string{"hello", "world"},
+		X11: map[int]int{
+			888: 888,
+		},
+		X12: T2{
+			Y1: 777,
+			Y2: "nice",
+		},
+	}
+	//t1map, _ := StructToMapWithJsonMashal(t1)
+	t1map, _ := StructToMap(t1)
+	fmt.Printf("t1:%+v\nt1map:%+v\n", t1, t1map)
+	VerifyMapValueType(t1map)
+	var tmp = 112
+	*t1.X1 = tmp
+	fmt.Printf("after change; t1:%+v\nt1map:%+v\n", *t1.X1, *(t1map["X1"].(*int)))
+}
+
+func TestDeepCopy(t *testing.T) {
+	var x1 = 1
+	var x1p = &x1
+	c := deepcopy.Copy(x1p)
+	fmt.Printf("%+v\n", *c.(*int))
+	*x1p = 2
+	fmt.Printf("%+v\n", *c.(*int))
+
 }
 
 func TestMapConv(t *testing.T) {
@@ -216,8 +231,9 @@ func TestMapConv(t *testing.T) {
 }
 
 func TestMapStructureV1(t *testing.T) {
+	var x1 = 111
 	t1 := T1{
-		X1:  111,
+		X1:  &x1,
 		X2:  222,
 		X3:  333,
 		X4:  444.4,
@@ -230,7 +246,7 @@ func TestMapStructureV1(t *testing.T) {
 		X11: map[int]int{
 			888: 888,
 		},
-		T2: T2{
+		X12: T2{
 			Y1: 777,
 			Y2: "nice",
 		},

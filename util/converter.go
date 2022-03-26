@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/mohae/deepcopy"
 	"reflect"
 )
 
@@ -11,7 +12,7 @@ var (
 	inputParamsErr = errors.New("input is not struct or ptr2struct")
 )
 
-func Struct2MapWithJsonMashal(s interface{}) (map[string]interface{}, error) {
+func StructToMapWithJsonMashal(s interface{}) (map[string]interface{}, error) {
 	st := reflect.TypeOf(s)
 	if st.Kind() == reflect.Ptr {
 		st = st.Elem()
@@ -136,7 +137,10 @@ func (c *Converter) StructToMap(input interface{}) (map[string]interface{}, erro
 		} else {
 			mapVal = fieldValInterface
 		}
-		res[mapKey] = mapVal
+		// deepcopy
+		mapValCopy := deepcopy.Copy(mapVal)
+
+		res[mapKey] = mapValCopy
 	}
 	return res, nil
 }
