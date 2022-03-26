@@ -21,7 +21,7 @@ type T1 struct {
 	X9  []int       `json:"x9"`
 	X10 []string    `json:"x10"`
 	X11 map[int]int `json:"x11"`
-	X12 T2          `json:"x12"`
+	T2  `json:"x12"`
 }
 
 type T2 struct {
@@ -230,7 +230,7 @@ func TestMapStructureV1(t *testing.T) {
 		X11: map[int]int{
 			888: 888,
 		},
-		X12: T2{
+		T2: T2{
 			Y1: 777,
 			Y2: "nice",
 		},
