@@ -202,31 +202,37 @@ func TestMapConv(t *testing.T) {
 	// 对于map转结构体，数据可能是从JSON来的，value大概率不是[]int,T2这种确定类型
 	//可能是 []interface{}，或者是map[string]interface{}
 	//所以这类转换到结构体字段需要是弱类型转换，即[]interface{} 可以转为[]int或[]string, map[string]interface{} 可以转换为map[string]int或者struct等等
-	//m := map[string]interface{}{
-	//	"X1":  111,
-	//	"X2":  int32(222),
-	//	"X3":  int64(333),
-	//	"X4":  float32(444.4),
-	//	"X5":  555.5,
-	//	"X6":  false,
-	//	"X7":  "byte",
-	//	"X8":  []byte("dance"),
-	//	"X9":  []int{1, 2, 3},
-	//	"X10": []string{"hello", "world"},
-	//	"X11": map[int]int{
-	//		888: 888,
-	//	},
-	//	"X12": T2{
-	//		Y1: 777,
-	//		Y2: "nice",
-	//	},
-	//}
-	//var s1 T1
-	//err := Map2Struct(m, &s1, false)
-	//fmt.Printf("err:%+v, s1:%+v\n", err, s1)
-	//
+	x1 := 111
+	m := map[string]interface{}{
+		"X1":  &x1,
+		"X2":  int32(222),
+		"X3":  int64(333),
+		"X4":  float32(444.4),
+		"X5":  555.5,
+		"X6":  false,
+		"X7":  "byte",
+		"X8":  []byte("dance"),
+		"X9":  []int{1, 2, 3},
+		"X10": []string{"hello", "world"},
+		"X11": map[int]int{
+			888: 888,
+		},
+		"X12": T2{
+			Y1: 777,
+			Y2: "nice",
+		},
+	}
+	var s1 T1
+	err := MapToStruct(m, &s1)
+	fmt.Printf("err:%+v\nm:%+v\ns1:%+v\n", err, m, s1)
+	fmt.Printf("err:%+v\nm:%+v\ns1:%+v\n", err, *m["X1"].(*int), *s1.X1)
+
+	fmt.Println("after change")
+	*(m["X1"].(*int)) = 112
+	fmt.Printf("m:%+v\ns1:%+v", *m["X1"].(*int), *s1.X1)
+
 	//var s2 *T1
-	//err = Map2Struct(m, s2, false)
+	//err = MapToStruct(m, &s2)
 	//fmt.Printf("err:%+v, s2:%+v", err, s2)
 }
 

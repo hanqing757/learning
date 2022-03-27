@@ -193,7 +193,7 @@ func (c *Converter) MapToStruct(input interface{}, output interface{}) error {
 	for i := 0; i < ott.NumField(); i++ {
 		fieldVal := ovv.Field(i)
 		fieldType := ott.Field(i)
-		// 可寻址 且是 结构体的可导出字段才可set
+		// 可寻址(传入需要是结构体指针) 且是 结构体的可导出字段才可set
 		if !fieldVal.CanSet() {
 			fmt.Printf("Field %s can not be set\n", fieldType.Name)
 		}
@@ -206,8 +206,10 @@ func (c *Converter) MapToStruct(input interface{}, output interface{}) error {
 		}
 
 		//todo 实现弱类型赋值
-		if mapVal.Elem().Type().AssignableTo(fieldType.Type) {
-			fieldVal.Set(mapVal.Elem())
+		mapValCopy := deepcopy.Copy(mapVal.Interface())               //对mapVal深拷贝
+		mapValCopyReflectVal := reflect.ValueOf(mapValCopy)           // 对深拷贝进行反射取值
+		if mapValCopyReflectVal.Type().AssignableTo(fieldType.Type) { //判断深拷贝的值是否可assignTo结构体字段
+			fieldVal.Set(mapValCopyReflectVal)
 		} else {
 			fmt.Printf("map key %s can not assignto field %s\n", mapKey, fieldType.Name)
 		}
