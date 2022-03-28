@@ -55,6 +55,9 @@ type ConvertConfig struct {
 	// struct -> map 不可导出字段
 	// map -> struct 在map中未找到字段或者赋值不成功
 	unTransformedFields []string
+
+	// 转化过程中的错误(不阻塞主流程，仅记录)
+	errors *Error
 }
 
 type Converter struct {
@@ -87,6 +90,13 @@ func (c *Converter) GetUnusedFieldOrMapKey() []string {
 	return c.config.unTransformedFields
 }
 
+func (c *Converter) GetErrors() error {
+	return c.config.errors
+}
+func (c *Converter) SetErrors(e *Error) {
+	c.config.errors = e
+}
+
 func (c *Converter) GenMapKeyByField(field reflect.StructField) string {
 	var mapKey string
 	if c.config.FieldMappingHook != nil {
@@ -116,6 +126,7 @@ func (c *Converter) StructToMap(input interface{}) (map[string]interface{}, erro
 		return nil, fmt.Errorf("input is not invalid struct")
 	}
 	res := map[string]interface{}{}
+	var convertErr = &Error{}
 	for i := 0; i < st.NumField(); i++ {
 		var (
 			mapKey string
@@ -126,6 +137,8 @@ func (c *Converter) StructToMap(input interface{}) (map[string]interface{}, erro
 		fieldVal := sv.Field(i)
 		if !fieldVal.CanInterface() { //不可导出字段不转换
 			c.config.unTransformedFields = append(c.config.unTransformedFields, st.Field(i).Name)
+			convertErr.AppendError(fmt.Errorf("%s is unexported", st.Field(i).Name))
+
 			continue
 		}
 
@@ -145,6 +158,9 @@ func (c *Converter) StructToMap(input interface{}) (map[string]interface{}, erro
 
 		res[mapKey] = mapValCopy
 	}
+
+	c.SetErrors(convertErr)
+
 	return res, nil
 }
 
@@ -192,20 +208,24 @@ func (c *Converter) MapToStruct(input interface{}, output interface{}) error {
 	} else {
 		return fmt.Errorf("output is not struct ot struct ptr")
 	}
+	//
+	var convertErr = &Error{}
 
 	for i := 0; i < ott.NumField(); i++ {
 		fieldVal := ovv.Field(i)
 		fieldType := ott.Field(i)
 		// 可寻址(传入需要是结构体指针) 且是 结构体的可导出字段才可set
 		if !fieldVal.CanSet() {
-			fmt.Printf("Field %s can not be set\n", fieldType.Name)
+			c.config.unTransformedFields = append(c.config.unTransformedFields, fieldType.Name)
+			convertErr.AppendError(fmt.Errorf("field %s can not be set", fieldType.Name))
 		}
 		mapKey := c.GenMapKeyByField(fieldType)
 		mapVal := mv.MapIndex(reflect.ValueOf(mapKey))
 		// key not found
 		if mapVal.IsZero() {
 			c.config.unTransformedFields = append(c.config.unTransformedFields, fieldType.Name)
-			fmt.Printf("key:%s not found in map\n", mapKey)
+			convertErr.AppendError(fmt.Errorf("key:%s not found in map", mapKey))
+
 			continue
 		}
 
@@ -216,10 +236,12 @@ func (c *Converter) MapToStruct(input interface{}, output interface{}) error {
 			fieldVal.Set(mapValCopyReflectVal)
 		} else {
 			c.config.unTransformedFields = append(c.config.unTransformedFields, fieldType.Name)
-			fmt.Printf("map key %s can not assignto field %s\n", mapKey, fieldType.Name)
+			convertErr.AppendError(fmt.Errorf("map key %s can not assignto field %s", mapKey, fieldType.Name))
 		}
 
 	}
+
+	c.SetErrors(convertErr)
 
 	return nil
 }
