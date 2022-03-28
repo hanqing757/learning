@@ -54,9 +54,6 @@ type ConvertConfig struct {
 	// struct -> map 不可导出字段
 	// map -> struct 在map中未找到字段或者赋值不成功
 	unTransformedFields []string
-
-	//转换过程error
-	errors error
 }
 
 type Converter struct {
