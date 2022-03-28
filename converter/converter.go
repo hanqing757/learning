@@ -1,10 +1,11 @@
-package util
+package converter
 
 import (
 	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/mohae/deepcopy"
+	"learning/util"
 	"reflect"
 )
 
@@ -102,7 +103,7 @@ func (c *Converter) GenMapKeyByField(field reflect.StructField) string {
 }
 
 func (c *Converter) StructToMap(input interface{}) (map[string]interface{}, error) {
-	defer Recover()
+	defer util.Recover()
 
 	st := reflect.TypeOf(input)
 	sv := reflect.ValueOf(input)
@@ -148,7 +149,7 @@ func (c *Converter) StructToMap(input interface{}) (map[string]interface{}, erro
 }
 
 func (c *Converter) MapToStruct(input interface{}, output interface{}) error {
-	defer Recover()
+	defer util.Recover()
 	// 输入是map或者map指针
 	mt := reflect.TypeOf(input)
 	mv := reflect.ValueOf(input)
