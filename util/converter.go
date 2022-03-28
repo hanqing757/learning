@@ -50,13 +50,13 @@ type ConvertConfig struct {
 	//map的interface value 转换为结构体字段时时候执行强类型转换
 	IsStrictTypeConvert bool
 
-	//未成功转换的字段
+	//未转换的字段
 	// struct -> map 不可导出字段
 	// map -> struct 在map中未找到字段或者赋值不成功
-	Unused []string
+	unTransformedFields []string
 
-	//转换过程的报错
-	Errors error
+	//转换过程error
+	errors error
 }
 
 type Converter struct {
@@ -83,6 +83,10 @@ func MapToStruct(input interface{}, output interface{}) error {
 	conf := &ConvertConfig{}
 	converter := NewConverter(conf)
 	return converter.MapToStruct(input, output)
+}
+
+func (c *Converter) GetUnusedFieldOrMapKey() []string {
+	return c.config.unTransformedFields
 }
 
 func (c *Converter) GenMapKeyByField(field reflect.StructField) string {
@@ -123,6 +127,7 @@ func (c *Converter) StructToMap(input interface{}) (map[string]interface{}, erro
 
 		fieldVal := sv.Field(i)
 		if !fieldVal.CanInterface() { //不可导出字段不转换
+			c.config.unTransformedFields = append(c.config.unTransformedFields, st.Field(i).Name)
 			continue
 		}
 
@@ -201,6 +206,7 @@ func (c *Converter) MapToStruct(input interface{}, output interface{}) error {
 		mapVal := mv.MapIndex(reflect.ValueOf(mapKey))
 		// key not found
 		if mapVal.IsZero() {
+			c.config.unTransformedFields = append(c.config.unTransformedFields, fieldType.Name)
 			fmt.Printf("key:%s not found in map\n", mapKey)
 			continue
 		}
@@ -211,6 +217,7 @@ func (c *Converter) MapToStruct(input interface{}, output interface{}) error {
 		if mapValCopyReflectVal.Type().AssignableTo(fieldType.Type) { //判断深拷贝的值是否可assignTo结构体字段
 			fieldVal.Set(mapValCopyReflectVal)
 		} else {
+			c.config.unTransformedFields = append(c.config.unTransformedFields, fieldType.Name)
 			fmt.Printf("map key %s can not assignto field %s\n", mapKey, fieldType.Name)
 		}
 

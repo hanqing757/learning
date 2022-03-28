@@ -320,9 +320,9 @@ func TestCanSet(t *testing.T) {
 		x1 int
 		X2 string
 	}{x1: 1, X2: "2"}
-	xv := reflect.ValueOf(x)
-	for i := 0; i < xv.NumField(); i++ {
-		xtf := xv.Field(i)
+	xv := reflect.ValueOf(&x)
+	for i := 0; i < xv.Elem().NumField(); i++ {
+		xtf := xv.Elem().Field(i)
 		fmt.Println(xtf.CanSet())
 		fmt.Println(xtf.CanAddr())
 		fmt.Println(xtf.CanInterface())
