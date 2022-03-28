@@ -223,6 +223,7 @@ func TestMapConv(t *testing.T) {
 		},
 	}
 	var s1 T1
+	m = nil
 	err := MapToStruct(m, &s1)
 	fmt.Printf("err:%+v\nm:%+v\ns1:%+v\n", err, m, s1)
 	fmt.Printf("err:%+v\nm:%+v\ns1:%+v\n", err, *m["X1"].(*int), *s1.X1)

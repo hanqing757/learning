@@ -173,8 +173,8 @@ func (c *Converter) MapToStruct(input interface{}, output interface{}) error {
 		mt = mt.Elem()
 		mv = mv.Elem()
 	}
-	// 非map 或者是map 空指针
-	if mt.Kind() != reflect.Map || !mv.IsValid() {
+	// 非map 或者是map空指针 或者nil map
+	if mt.Kind() != reflect.Map || !mv.IsValid() || mv.IsNil() {
 		return fmt.Errorf("input params is not valid map")
 	}
 	//map的必须要是string
