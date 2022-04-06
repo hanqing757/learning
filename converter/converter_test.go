@@ -2,6 +2,7 @@ package converter
 
 import (
 	"fmt"
+	"github.com/jinzhu/copier"
 	"github.com/mitchellh/mapstructure"
 	"github.com/mohae/deepcopy"
 	"reflect"
@@ -180,12 +181,17 @@ func TestStructConv(t *testing.T) {
 		},
 	}
 	//t1map, _ := StructToMapWithJsonMashal(t1)
-	t1map, _ := StructToMap(t1)
-	fmt.Printf("t1:%+v\nt1map:%+v\n", t1, t1map)
-	VerifyMapValueType(t1map)
-	var tmp = 112
-	*t1.X1 = tmp
-	fmt.Printf("after change; t1:%+v\nt1map:%+v\n", *t1.X1, *(t1map["X1"].(*int)))
+	//t1map, _ := StructToMap(t1)
+	//fmt.Printf("t1:%+v\nt1map:%+v\n", t1, t1map)
+	//VerifyMapValueType(t1map)
+	//*t1.X1 = 112
+	//fmt.Printf("after change; t1:%+v;t1map:%+v\n", *t1.X1, *t1map["X1"].(*int))
+
+	var t2 = struct {
+		X2 int
+	}{}
+	err := copier.Copy(&t2, t1)
+	fmt.Println(err, t1, t2)
 }
 
 func TestDeepCopy(t *testing.T) {
@@ -259,16 +265,21 @@ func TestMapStructureV1(t *testing.T) {
 		},
 	}
 	var m1 = map[string]interface{}{}
-	err := mapstructure.Decode(t1, &m1)
-	fmt.Printf("%+v, %+v\n", err, m1)
+	var m2 = struct {
+		X1 *int
+	}{}
+	err := mapstructure.Decode(t1, &m2)
+	fmt.Printf("%+v\n%+v\n%+v\n", err, t1, m2)
 	VerifyMapValueType(m1)
+	*t1.X1 = 43243432432
+	fmt.Printf("%+v; %+v\n", *t1.X1, *m2.X1)
 }
 
 func TestMapstructureV2(t *testing.T) {
 	m1 := map[string]interface{}{
 		"name": 111, //转换时key的首字母大小写不敏感
 		"x2":   222, //map的value 类型检测弱，int可以赋值给结构体的int32
-		"X3":   int64(333),
+		"X3":   int32(333),
 		"X4":   float32(444.4),
 		"X5":   555.5,
 		"X6":   false,
